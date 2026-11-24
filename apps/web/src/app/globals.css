@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg1: #0B1030;
+  --bg2: #1B1650;
+  --bg3: #0E2A4A;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --panel: rgba(14, 18, 40, 0.72);
+  --text: #F4F6FF;
+  --muted: #B6BCD6;
+  --cyan: #5EEAD4;
+  --violet: #A78BFA;
+  --ok: #34D399;
+  --bad: #F87171;
+  --warn: #FBBF24;
+  --slate: #94A3B8;
+  --radius: 20px;
+  --blur: 16px;
+
+  /* Bento EduView Tokens */
+  --edu-bg: #8E92E8;
+  --edu-canvas: #F4F5FB;
+  --edu-periwinkle: #7E7AE6;
+  --edu-peach: #FFA172;
+  --edu-dark: #191A23;
+  --edu-lilac: #857EEF;
+  --edu-yellow: #FEF3C7;
+  --edu-blue: #38BDF8;
+}
+
+:root[data-theme="light"] {
+  --bg1: #EEF2FF;
+  --bg2: #E0F2FE;
+  --bg3: #F5F3FF;
+  --glass: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(15, 23, 42, 0.12);
+  --panel: rgba(255, 255, 255, 0.88);
+  --text: #0F172A;
+  --muted: #475569;
+  --cyan: #0E7490;
+  --violet: #6D28D9;
+  --ok: #047857;
+  --bad: #B91C1C;
+  --warn: #92400E;
+  --slate: #475569;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg1);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Diagonal stripe pattern for the Wednesday capsule bar */
+.striped-wednesday {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(25, 26, 35, 0.85),
+    rgba(25, 26, 35, 0.85) 6px,
+    rgba(255, 161, 114, 0.9) 6px,
+    rgba(255, 161, 114, 0.9) 12px
+  );
+}
+
+.glass {
+  background: var(--panel); /* fallback */
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.glass-panel {
+  background: var(--panel);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+    backdrop-filter: blur(var(--blur)) saturate(140%);
+  }
+  .glass-panel {
+    background: var(--panel);
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-panel {
+    background: var(--panel);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb {
+    animation: none;
+  }
+}

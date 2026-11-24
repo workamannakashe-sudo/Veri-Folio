@@ -1,0 +1,402 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  STUDENT
+  MENTOR
+  ADMIN
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum EntryState {
+  DRAFT
+  REQUESTED
+  CHANGES_REQUESTED
+  APPROVED
+  DECLINED
+  REVOKED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum SkillSource {
+  STUDENT
+  AI
+  MENTOR
+}
+
+enum DecisionType {
+  APPROVE
+  CHANGES_REQUESTED
+  DECLINE
+}
+
+enum ScanStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+enum FlagStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model School {
+  id         String   @id @default(uuid())
+  name       String
+  slug       String   @unique
+  erp_ref    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  users        User[]
+  groups       Group[]
+  audit_events AuditEvent[]
+  entries      Entry[]
+
+  @@map("school")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  school_id     String
+  role          UserRole
+  email         String
+  full_name     String
+  first_name    String
+  class_level   String?
+  is_minor      Boolean    @default(false)
+  erp_ref       String?
+  status        UserStatus @default(ACTIVE)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  school        School       @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  memberships   Membership[]
+  entries       Entry[]      @relation("StudentEntries")
+  verifications Verification[]
+  mentor_signals MentorSignal[]
+  notifications Notification[]
+
+  @@unique([school_id, email])
+  @@index([school_id, role])
+  @@map("user")
+}
+
+model Group {
+  id         String   @id @default(uuid())
+  school_id  String
+  name       String
+  category   String   // CLASS, CLUB, TEAM
+  created_at DateTime @default(now())
+
+  school      School       @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  memberships Membership[]
+
+  @@index([school_id])
+  @@map("group")
+}
+
+model Membership {
+  id            String   @id @default(uuid())
+  school_id     String
+  user_id       String
+  group_id      String
+  role_in_group String   // STUDENT, TEACHER, COACH, ADVISOR
+  created_at    DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, group_id])
+  @@index([school_id, user_id])
+  @@index([school_id, group_id])
+  @@map("membership")
+}
+
+model Entry {
+  id         String   @id @default(uuid())
+  school_id  String
+  student_id String
+  category   String   // project, sport, club
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  school          School          @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  student         User            @relation("StudentEntries", fields: [student_id], references: [id], onDelete: Cascade)
+  revisions       EntryRevision[]
+  published_entry PublishedEntry?
+  share_links     ShareLink[]
+  flags           Flag[]
+
+  @@index([school_id, student_id])
+  @@map("entry")
+}
+
+model EntryRevision {
+  id          String     @id @default(uuid())
+  school_id   String
+  entry_id    String
+  revision    Int        @default(1)
+  state       EntryState @default(DRAFT)
+  title       String
+  description String
+  category    String
+  role        String
+  start_date  String     // ISO 8601 (YYYY-MM-DD)
+  end_date    String     // ISO 8601 (YYYY-MM-DD)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  entry         Entry          @relation(fields: [entry_id], references: [id], onDelete: Cascade)
+  skills        EntrySkill[]
+  evidences     Evidence[]
+  verification  Verification?
+  revocation    Revocation?
+
+  @@unique([entry_id, revision])
+  @@index([school_id, state])
+  @@map("entry_revision")
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  family      String   // technology, science, arts, sports, leadership, communication, community, enterprise
+  synonyms    String[] // array of synonym search terms
+  description String?
+  created_at  DateTime @default(now())
+
+  entry_skills EntrySkill[]
+
+  @@map("skill")
+}
+
+model EntrySkill {
+  id          String      @id @default(uuid())
+  school_id   String
+  revision_id String
+  skill_id    String
+  level       SkillLevel
+  source      SkillSource @default(STUDENT)
+  reason      String?
+
+  revision EntryRevision @relation(fields: [revision_id], references: [id], onDelete: Cascade)
+  skill    Skill         @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id, revision_id])
+  @@map("entry_skill")
+}
+
+model Evidence {
+  id          String     @id @default(uuid())
+  school_id   String
+  revision_id String
+  object_key  String
+  sha256      String
+  mime_type   String
+  file_size   Int
+  scan_status ScanStatus @default(PENDING)
+  created_at  DateTime   @default(now())
+
+  revision EntryRevision @relation(fields: [revision_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id, revision_id])
+  @@map("evidence")
+}
+
+model Verification {
+  id          String       @id @default(uuid())
+  school_id   String
+  revision_id String       @unique
+  mentor_id   String
+  decision    DecisionType @default(APPROVE)
+  note        String       // min 20 chars
+  digest      String       // SHA-256 of canonical fields
+  signature   String       // Ed25519 signature
+  key_id      String
+  decided_at  DateTime     @default(now())
+
+  revision EntryRevision @relation(fields: [revision_id], references: [id], onDelete: Cascade)
+  mentor   User          @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id, mentor_id])
+  @@map("verification")
+}
+
+model Revocation {
+  id                  String   @id @default(uuid())
+  school_id           String
+  revision_id         String   @unique
+  verification_digest String
+  revoked_by          String
+  reason              String
+  revoked_at          DateTime @default(now())
+  key_id              String
+  signature           String
+
+  revision EntryRevision @relation(fields: [revision_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id])
+  @@map("revocation")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid())
+  school_id   String
+  sequence    Int
+  type        String
+  actor       String
+  payload     Json
+  prev_hash   String
+  hash        String
+  created_at  DateTime @default(now())
+
+  school School @relation(fields: [school_id], references: [id], onDelete: Cascade)
+
+  @@unique([school_id, sequence])
+  @@index([school_id, hash])
+  @@map("audit_event")
+}
+
+model Consent {
+  id                String    @id @default(uuid())
+  school_id         String
+  student_id        String
+  guardian_name     String
+  guardian_contact  String
+  scope             String
+  notice_version    String
+  given_at          DateTime  @default(now())
+  withdrawn_at      DateTime?
+
+  @@index([school_id, student_id])
+  @@map("consent")
+}
+
+model PublishedEntry {
+  id              String   @id @default(uuid())
+  entry_id        String   @unique
+  school_name     String
+  student_name    String   // first name only if minor
+  class_level     String?
+  title           String
+  description     String
+  category        String
+  role            String
+  start_date      String
+  end_date        String
+  mentor_name     String
+  mentor_note     String
+  skills_json     Json
+  evidence_hashes String[]
+  verified_at     DateTime
+  published_at    DateTime @default(now())
+
+  entry Entry @relation(fields: [entry_id], references: [id], onDelete: Cascade)
+
+  @@index([verified_at])
+  @@map("published_entry")
+}
+
+model ShareLink {
+  id         String    @id @default(uuid())
+  entry_id   String
+  token      String    @unique
+  created_by String
+  expires_at DateTime?
+  created_at DateTime  @default(now())
+
+  entry Entry @relation(fields: [entry_id], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("share_link")
+}
+
+model ViewerOrg {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String   @unique
+  contact     String
+  is_approved Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  view_logs ViewLog[]
+
+  @@map("viewer_org")
+}
+
+model ViewLog {
+  id            String   @id @default(uuid())
+  viewer_org_id String
+  entry_id      String
+  ip_address    String?
+  viewed_at     DateTime @default(now())
+
+  viewer_org ViewerOrg @relation(fields: [viewer_org_id], references: [id], onDelete: Cascade)
+
+  @@index([viewer_org_id, viewed_at])
+  @@map("view_log")
+}
+
+model Flag {
+  id          String     @id @default(uuid())
+  entry_id    String
+  flagged_by  String
+  reason      String
+  status      FlagStatus @default(PENDING)
+  created_at  DateTime   @default(now())
+
+  entry Entry @relation(fields: [entry_id], references: [id], onDelete: Cascade)
+
+  @@index([entry_id, status])
+  @@map("flag")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  school_id  String
+  user_id    String
+  title      String
+  body       String
+  link       String?
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id, user_id, is_read])
+  @@map("notification")
+}
+
+model MentorSignal {
+  id                 String   @id @default(uuid())
+  school_id          String
+  mentor_id          String
+  approval_duration_s Int
+  decision           DecisionType
+  created_at         DateTime @default(now())
+
+  mentor User @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id, mentor_id])
+  @@map("mentor_signal")
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@verifolio/worker",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@verifolio/shared": "workspace:*",
+    "bullmq": "5.25.4",
+    "ioredis": "5.4.1",
+    "pino": "9.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  }
+}
