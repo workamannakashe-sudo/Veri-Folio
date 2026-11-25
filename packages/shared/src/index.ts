@@ -13,6 +13,47 @@ export const EntryStateSchema = z.enum([
 ]);
 export type EntryState = z.infer<typeof EntryStateSchema>;
 
+/**
+ * State Machine Transition Matrix for Entry Revisions.
+ * Enforces strict document lifecycle: only allowed transitions are permitted.
+ */
+export const ALLOWED_STATE_TRANSITIONS: Record<EntryState, readonly EntryState[]> = {
+  DRAFT: ['REQUESTED'],
+  REQUESTED: ['CHANGES_REQUESTED', 'APPROVED', 'DECLINED'],
+  CHANGES_REQUESTED: ['DRAFT', 'REQUESTED'],
+  APPROVED: ['REVOKED'], // Approved revisions can only be revoked; new work creates revision v+1
+  DECLINED: [],          // Terminal state for this revision
+  REVOKED: []           // Terminal state for this revision
+} as const;
+
+export function canTransitionEntryState(from: EntryState, to: EntryState): boolean {
+  const allowed = ALLOWED_STATE_TRANSITIONS[from];
+  return allowed ? (allowed as readonly string[]).includes(to) : false;
+}
+
+export function assertValidTransition(from: EntryState, to: EntryState): void {
+  if (!canTransitionEntryState(from, to)) {
+    throw new Error(`Invalid state transition: Cannot transition entry revision from '${from}' to '${to}'. Allowed: [${ALLOWED_STATE_TRANSITIONS[from]?.join(', ') || 'none'}]`);
+  }
+}
+
+/**
+ * Check if an entry revision is in an editable state.
+ * Only DRAFT or CHANGES_REQUESTED may be modified by a student.
+ */
+export function isRevisionEditable(state: EntryState): boolean {
+  return state === 'DRAFT' || state === 'CHANGES_REQUESTED';
+}
+
+export const EntryCategorySchema = z.enum(['project', 'sport', 'club']);
+export type EntryCategory = z.infer<typeof EntryCategorySchema>;
+
+export const CATEGORY_LABELS: Record<EntryCategory, string> = {
+  project: 'Academic / STEM Project',
+  sport: 'Athletics & Sports',
+  club: 'Club & Society Leadership'
+};
+
 export const SkillLevelSchema = z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']);
 export type SkillLevel = z.infer<typeof SkillLevelSchema>;
 

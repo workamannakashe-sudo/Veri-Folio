@@ -14,7 +14,8 @@ export default function AdminDashboard() {
     mentorsCount: 2,
     verifiedCount: 1,
     chainContinuous: true,
-    totalEvents: 3
+    totalEvents: 3,
+    headHash: '3f7a1c8b2d9e0f4a...'
   });
 
   useEffect(() => {
@@ -22,11 +23,14 @@ export default function AdminDashboard() {
       try {
         const data = await apiFetch('/admin/audit/integrity');
         if (data) {
-          setStats((prev) => ({
-            ...prev,
+          setStats({
+            studentsCount: data.students_count ?? 2,
+            mentorsCount: data.mentors_count ?? 2,
+            verifiedCount: data.verified_count ?? 1,
             chainContinuous: data.chain_continuous ?? true,
-            totalEvents: data.total_events ?? 3
-          }));
+            totalEvents: data.total_events ?? 3,
+            headHash: data.head_hash ? `${data.head_hash.slice(0, 16)}...` : '3f7a1c8b2d9e0f4a...'
+          });
         }
       } catch {
         // fallback
@@ -103,7 +107,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)]">
                 <span className="text-[var(--muted)] block">Signed Head Hash</span>
-                <span className="font-mono text-[var(--text)] truncate block mt-0.5">3f7a1c8b2d9e0f4a...</span>
+                <span className="font-mono text-[var(--text)] truncate block mt-0.5">{stats.headHash}</span>
               </div>
               <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)]">
                 <span className="text-[var(--muted)] block">Tamper Detection</span>

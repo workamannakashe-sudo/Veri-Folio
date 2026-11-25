@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { defaultKeyRegistry } from './modules/seal/keys';
+import { idempotencyMiddleware } from './middleware/idempotency';
 import { authRouter } from './routes/auth.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { entriesRouter } from './routes/entries.routes';
@@ -18,6 +19,7 @@ const port = Number(process.env.PORT) || 4000;
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
+app.use(idempotencyMiddleware);
 
 // Public health check
 app.get('/health', (_req, res) => {

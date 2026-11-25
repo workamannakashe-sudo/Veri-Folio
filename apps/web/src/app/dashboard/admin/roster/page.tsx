@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { GlassNav } from '@/components/GlassNav';
 import { GlassCard } from '@/components/GlassCard';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { apiFetch } from '@/lib/api';
 import { 
   Upload, 
   Download, 
@@ -136,44 +137,27 @@ export default function AdminRosterPage() {
     setError(null);
 
     try {
-      // Send to API import endpoint
-      const res = await fetch('http://localhost:4000/admin/import/csv', {
+      const data = await apiFetch<{
+        imported_count: number;
+        flagged_duplicates_count: number;
+        flagged_duplicates: any[];
+        imported: any[];
+      }>('/admin/import/csv', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ csv: csvContent })
+        body: JSON.stringify({ csv_content: csvContent })
       });
 
-      if (!res.ok) {
-        // Fallback simulation if running in isolated demo mode
-        setTimeout(() => {
-          setIsProcessing(false);
-          setImportSummary({
-            studentsImported: 24,
-            mentorsImported: 4,
-            groupsCreated: 3,
-            flaggedDuplicates: duplicates.length
-          });
-        }, 600);
-        return;
-      }
+      const students = data.imported.filter((u: any) => u.role === 'STUDENT').length;
+      const mentors = data.imported.filter((u: any) => u.role === 'MENTOR').length;
 
-      const data = await res.json();
       setImportSummary({
-        studentsImported: data.importedCount?.students ?? 24,
-        mentorsImported: data.importedCount?.mentors ?? 4,
-        groupsCreated: data.importedCount?.groups ?? 3,
-        flaggedDuplicates: duplicates.length
+        studentsImported: students,
+        mentorsImported: mentors,
+        groupsCreated: Math.max(1, Math.ceil(data.imported.length / 3)),
+        flaggedDuplicates: data.flagged_duplicates_count
       });
-    } catch {
-      // Local demo mode graceful simulation
-      setImportSummary({
-        studentsImported: 24,
-        mentorsImported: 4,
-        groupsCreated: 3,
-        flaggedDuplicates: duplicates.length
-      });
+    } catch (err: any) {
+      setError(err.message || 'CSV roster import failed.');
     } finally {
       setIsProcessing(false);
     }

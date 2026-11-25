@@ -155,3 +155,48 @@ adminRouter.post('/import/csv', (req, res) => {
     imported
   });
 });
+
+// 5. Audit Chain Integrity & School Statistics
+adminRouter.get('/audit/integrity', (req, res) => {
+  const schoolId = req.schoolId!;
+  const schoolEvents = memoryStore.auditEvents.get(schoolId) || [];
+  
+  // Verify hash chain continuity
+  let chainContinuous = true;
+  let prev = '0000000000000000000000000000000000000000000000000000000000000000';
+  for (let i = 0; i < schoolEvents.length; i++) {
+    const ev = schoolEvents[i];
+    if (ev.prev_hash !== prev || ev.sequence !== i + 1) {
+      chainContinuous = false;
+      break;
+    }
+    prev = ev.hash;
+  }
+
+  const users = Array.from(memoryStore.users.values()).filter((u) => u.school_id === schoolId);
+  const studentsCount = users.filter((u) => u.role === 'STUDENT').length;
+  const mentorsCount = users.filter((u) => u.role === 'MENTOR').length;
+  const published = Array.from(memoryStore.publishedEntries.values()).filter((p) => p.school_id === schoolId);
+
+  return res.json({
+    school_id: schoolId,
+    total_events: schoolEvents.length,
+    chain_continuous: chainContinuous,
+    head_hash: schoolEvents.length > 0 ? schoolEvents[schoolEvents.length - 1].hash : prev,
+    active_key: 'ed25519-demo-2026-v1',
+    students_count: studentsCount,
+    mentors_count: mentorsCount,
+    verified_count: published.length,
+    checked_at: new Date().toISOString()
+  });
+});
+
+// 6. View Raw Audit Events (Read-only view)
+adminRouter.get('/audit/events', (req, res) => {
+  const schoolId = req.schoolId!;
+  const schoolEvents = memoryStore.auditEvents.get(schoolId) || [];
+  return res.json({
+    total: schoolEvents.length,
+    events: schoolEvents
+  });
+});
