@@ -1,0 +1,119 @@
+:root {
+  /* Brand Purples */
+  --purple-50: #F1F0FE;
+  --purple-100: #E3E1FB;
+  --purple-200: #CFCBF8;
+  --purple-300: #B5B0F4;
+  --purple-400: #A29DF2;
+  --purple-500: #8F8AF0;
+  --purple-600: #7E7AE6;
+  --purple-700: #625CCB;
+  --purple-900: #2F2B73;
+
+  /* Accent Peach / Orange */
+  --orange-50: #FFF4EC;
+  --orange-100: #FDE3D0;
+  --orange-200: #FFA172;
+  --orange-300: #FBB680;
+  --orange-400: #FAA66B;
+  --orange-500: #F99B5C;
+  --orange-600: #EC8442;
+  --orange-700: #C9662A;
+
+  /* Pill bar browns */
+  --brown-500: #8A5A3F;
+  --brown-700: #5C3B2B;
+  --brown-900: #3A241A;
+
+  /* Highlights & Status */
+  --yellow-400: #FEF3C7;
+  --yellow-500: #F59E0B;
+  --green-500: #10B981;
+  --red-500: #EF4444;
+  --blue-400: #38BDF8;
+  --blue-500: #3B82F6;
+
+  /* Neutrals */
+  --ink-950: #0E0F11;
+  --ink-900: #191A23;
+  --charcoal-800: #2A2D33;
+  --charcoal-700: #3A3E46;
+  --gray-500: #6B6F76;
+  --gray-400: #9A9EA6;
+  --gray-300: #D5D7DB;
+  --gray-200: #E7E8EB;
+  --gray-100: #F4F5FB;
+  --gray-50: #F8F8FA;
+  --white: #FFFFFF;
+
+  /* Semantics */
+  --bg-backdrop: linear-gradient(135deg, #B9B5F9 0%, #9D98F2 100%);
+  --bg-frame: var(--ink-900);
+  --bg-sheet: var(--white);
+  --bg-panel: var(--gray-100);
+  --bg-card: var(--white);
+  --text-primary: var(--ink-950);
+  --text-secondary: var(--gray-500);
+  --text-on-dark: var(--white);
+  --text-on-accent: var(--ink-950);
+  --border-default: var(--gray-200);
+  --focus-ring: 0 0 0 3px var(--purple-300);
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --r-2xl: 40px;
+  --r-frame: 48px;
+  --r-pill: 9999px;
+
+  /* Spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Elevations */
+  --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.06);
+  --shadow-md: 0 8px 24px rgba(20, 20, 40, 0.08);
+  --shadow-lg: 0 16px 40px rgba(20, 20, 40, 0.12);
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+[data-theme="dark"] {
+  --bg-backdrop: linear-gradient(135deg, #1E1B38 0%, #12131C 100%);
+  --bg-frame: #12131C;
+  --bg-sheet: #1E202B;
+  --bg-panel: #272A38;
+  --bg-card: #272A38;
+  --text-primary: #F8F8FA;
+  --text-secondary: #9A9EA6;
+  --text-on-dark: #FFFFFF;
+  --text-on-accent: #FFFFFF;
+  --border-default: #3A3E4E;
+  --focus-ring: 0 0 0 3px var(--purple-500);
+}
+
+/* Diagonal stripe pattern for highlighted capsule bar */
+.striped-capsule {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(25, 26, 35, 0.85),
+    rgba(25, 26, 35, 0.85) 6px,
+    rgba(255, 161, 114, 0.95) 6px,
+    rgba(255, 161, 114, 0.95) 12px
+  );
+}

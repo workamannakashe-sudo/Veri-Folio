@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '../../../../packages/ui/src/tokens/tokens.css';
+
 :root {
   --bg1: #0B1030;
   --bg2: #1B1650;

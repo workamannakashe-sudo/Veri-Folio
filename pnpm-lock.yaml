@@ -112,6 +112,9 @@ importers:
       '@verifolio/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@verifolio/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -181,6 +184,34 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
+      typescript:
+        specifier: 5.6.3
+        version: 5.6.3
+
+  packages/ui:
+    dependencies:
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: 0.460.0
+        version: 0.460.0(react@18.3.1)
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: 22.9.0
+        version: 22.9.0
+      '@types/react':
+        specifier: 18.3.12
+        version: 18.3.12
+      '@types/react-dom':
+        specifier: 18.3.1
+        version: 18.3.1
       typescript:
         specifier: 5.6.3
         version: 5.6.3
