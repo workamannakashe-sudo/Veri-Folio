@@ -1,6 +1,6 @@
 # VeriFolio - Mentor-Verified Skill Portfolios
 
-VeriFolio is an educational skill portfolio and institutional credential verification platform. It allows students to document authentic projects and skills, while enabling mentors and institutions to cryptographically verify, seal, and issue tamper-proof achievements.
+VeriFolio is an educational skill portfolio and institutional credential verification platform. It allows students to document authentic projects and skills, while enabling mentors and institutions to cryptographically verify, seal, and issue tamper-proof achievements.  
 
 ---
  
