@@ -46,7 +46,7 @@ export function buildSealFields(input: {
   decided_at: string;
   schema_version?: string;
 }): SealFields {
-  const sortedSkills = [...input.skills].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedSkills = [...input.skills].sort((a: SealSkillItem, b: SealSkillItem) => a.id.localeCompare(b.id));
   const sortedEvidence = [...input.evidence].sort((a, b) => a.localeCompare(b));
 
   const rawFields: SealFields = {

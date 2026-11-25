@@ -98,7 +98,7 @@ export class RuleSuggester {
       }
 
       // Check description keywords
-      const words = skill.description.toLowerCase().split(/\W+/).filter((w) => w.length > 4);
+      const words = skill.description.toLowerCase().split(/\W+/).filter((w: string) => w.length > 4);
       for (const word of words) {
         if (lower.includes(word)) {
           score += 1;
@@ -122,7 +122,7 @@ export class RuleSuggester {
     // If nothing matched, pick 2 general relevant foundational skills
     if (top.length === 0) {
       const fallback = CONTROLLED_SKILLS.slice(0, 2);
-      return fallback.map((s) => ({
+      return fallback.map((s: ControlledSkill) => ({
         id: s.id,
         name: s.name,
         family: s.family,
@@ -209,7 +209,7 @@ export class SkillSuggesterService {
   }
 
   private async queryGeminiLlm(redactedText: string, apiKey: string): Promise<SuggestedSkill[] | null> {
-    const validSkillIds = new Set(CONTROLLED_SKILLS.map((s) => s.id));
+    const validSkillIds = new Set(CONTROLLED_SKILLS.map((s: ControlledSkill) => s.id));
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3500);
 
@@ -258,7 +258,7 @@ Project Description: "${redactedText}"`;
       const validResults: SuggestedSkill[] = [];
       for (const item of parsed.data.skills) {
         if (validSkillIds.has(item.id)) {
-          const meta = CONTROLLED_SKILLS.find((s) => s.id === item.id)!;
+          const meta = CONTROLLED_SKILLS.find((s: ControlledSkill) => s.id === item.id)!;
           validResults.push({
             id: item.id,
             name: meta.name,

@@ -52,14 +52,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Packages & Apps
+        run: pnpm build
+
       - name: Lint
         run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
 
       - name: Unit & Golden Vector Tests
         run: pnpm test

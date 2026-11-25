@@ -25,7 +25,7 @@ skillsRouter.get('/', (req, res) => {
       (s) =>
         s.name.toLowerCase().includes(q) ||
         s.description.toLowerCase().includes(q) ||
-        s.synonyms.some((syn) => syn.toLowerCase().includes(q))
+        s.synonyms.some((syn: string) => syn.toLowerCase().includes(q))
     );
   }
 
