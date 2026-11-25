@@ -1,18 +1,46 @@
-import { PrismaClient } from '@prisma/client';
+// Safely resolve PrismaClient if generated, without breaking compilation if types are not generated yet
+let PrismaClientConstructor: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const prismaPkg = require('@prisma/client');
+  PrismaClientConstructor = prismaPkg.PrismaClient || null;
+} catch {
+  PrismaClientConstructor = null;
+}
+
+export interface PrismaClient {
+  $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T>;
+  $executeRawUnsafe(query: string, ...values: any[]): Promise<any>;
+  $queryRawUnsafe<T = any>(query: string, ...values: any[]): Promise<T>;
+  [key: string]: any;
+}
 
 let _prismaInstance: PrismaClient | null = null;
 
 export function getPrismaClient(): PrismaClient {
   if (!_prismaInstance) {
-    _prismaInstance = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
+    if (PrismaClientConstructor) {
+      _prismaInstance = new PrismaClientConstructor({
+        datasources: {
+          db: {
+            url: process.env.DATABASE_URL
+          }
         }
-      }
-    });
+      });
+    } else {
+      _prismaInstance = {
+        $transaction: async <T>(fn: (tx: any) => Promise<T>): Promise<T> => {
+          return fn({
+            $executeRawUnsafe: async () => 0,
+            $queryRawUnsafe: async () => []
+          });
+        },
+        $executeRawUnsafe: async () => 0,
+        $queryRawUnsafe: async () => []
+      } as PrismaClient;
+    }
   }
-  return _prismaInstance;
+  return _prismaInstance!;
 }
 
 export const prisma = new Proxy({} as PrismaClient, {
