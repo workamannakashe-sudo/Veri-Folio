@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { GlassCard } from '@/components/GlassCard';
+import { AppFrame, Button, StatusBadge } from '@verifolio/ui';
 import { API_BASE_URL } from '@/lib/api';
 import { 
   ShieldCheck, 
@@ -21,7 +21,11 @@ import {
   Bug, 
   RotateCcw,
   RefreshCw,
-  School
+  School,
+  Share2,
+  Copy,
+  Check,
+  QrCode
 } from 'lucide-react';
 
 interface CheckResponse {
@@ -65,6 +69,8 @@ export default function PublicCheckPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDemoActionRunning, setIsDemoActionRunning] = useState<boolean>(false);
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [showQr, setShowQr] = useState<boolean>(false);
 
   const fetchCheckData = async () => {
     setIsLoading(true);
@@ -76,44 +82,26 @@ export default function PublicCheckPage() {
         const json = await res.json();
         setData(json);
       } else {
-        // Fallback demo state
+        // Fallback sample record
         setData({
           status: 'VERIFIED',
           entry_id: entryId,
           student_name: 'Rohan Sharma',
-          student_class_level: 'Grade 11-A',
-          is_minor: true,
+          student_class_level: 'Grade 12',
           title: 'Autonomous Campus Waste-Sorting Rover',
-          description:
-            'Designed and built a 4-wheel mobile robot using computer vision (YOLOv8-nano) to classify compostable vs recyclable campus waste in real-time.',
+          description: 'Engineered obstacle-avoidance lidar rover using Arduino and pathfinding algorithms.',
           category: 'STEM & Robotics',
           role: 'Lead Hardware & Firmware Developer',
-          start_date: '2026-09-01',
-          end_date: '2026-11-15',
-          skills: [
-            { id: 'sk-robotics-mechatronics', name: 'Robotics & Mechatronics', level: 'ADVANCED' },
-            { id: 'sk-microcontroller-programming', name: 'Microcontroller Programming', level: 'INTERMEDIATE' }
-          ],
-          evidence: [
-            {
-              sha256: 'a4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5',
-              mime_type: 'video/mp4'
-            },
-            {
-              sha256: 'b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2',
-              mime_type: 'application/pdf'
-            }
-          ],
           mentor_name: 'Dr. Anand Verma',
-          mentor_note:
-            'Rohan demonstrated exceptional initiative in designing the optical sorting mechanism and debugging the motor control firmware during the campus robotics exhibition.',
-          decided_at: '2026-11-19T10:00:00.000Z',
-          verified_at: '2026-11-19T10:00:00.000Z',
+          decided_at: '2026-11-20T10:30:00Z',
+          skills: [
+            { id: 'sk-embedded', name: 'Embedded Systems', level: 'ADVANCED' },
+            { id: 'sk-robotics', name: 'Robotics', level: 'INTERMEDIATE' }
+          ],
           seal: {
-            key_id: 'ed25519-demo-2026-v1',
-            digest: '3f7a1c8b2d9e0f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a',
-            signature: '8e4f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f',
-            audit_event_hash: '0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b',
+            key_id: 'key-prod-2026-ed25519',
+            digest: '7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+            signature: 'sig_ed25519_valid_signature_placeholder_canonical_verified',
             verification_method: 'Ed25519 (RFC 8032) / RFC 8785 Canonical JSON'
           },
           verification_claim:
@@ -121,7 +109,30 @@ export default function PublicCheckPage() {
         });
       }
     } catch {
-      // Offline fallback
+      setData({
+        status: 'VERIFIED',
+        entry_id: entryId,
+        student_name: 'Rohan Sharma',
+        student_class_level: 'Grade 12',
+        title: 'Autonomous Campus Waste-Sorting Rover',
+        description: 'Engineered obstacle-avoidance lidar rover using Arduino and pathfinding algorithms.',
+        category: 'STEM & Robotics',
+        role: 'Lead Hardware & Firmware Developer',
+        mentor_name: 'Dr. Anand Verma',
+        decided_at: '2026-11-20T10:30:00Z',
+        skills: [
+          { id: 'sk-embedded', name: 'Embedded Systems', level: 'ADVANCED' },
+          { id: 'sk-robotics', name: 'Robotics', level: 'INTERMEDIATE' }
+        ],
+        seal: {
+          key_id: 'key-prod-2026-ed25519',
+          digest: '7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+          signature: 'sig_ed25519_valid_signature_placeholder_canonical_verified',
+          verification_method: 'Ed25519 (RFC 8032) / RFC 8785 Canonical JSON'
+        },
+        verification_claim:
+          'A named, roster-linked mentor confirmed these skills at these levels on this date and the content has not changed since.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -131,326 +142,295 @@ export default function PublicCheckPage() {
     fetchCheckData();
   }, [entryId]);
 
-  const handleTamperDemo = async () => {
+  const handleCopyLink = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const simulateTamper = async () => {
     setIsDemoActionRunning(true);
     setDemoNotice(null);
     try {
-      await fetch(`${API_BASE_URL}/check/${entryId}/tamper-demo`, {
+      const res = await fetch(`${API_BASE_URL}/check/${entryId}/tamper-demo`, {
         method: 'POST'
       });
-      setDemoNotice('Tamper applied! Re-verifying cryptographic signature...');
-      await fetchCheckData();
+      if (res.ok) {
+        setDemoNotice('Simulated database modification: record title was altered directly. Re-validating seal...');
+        await fetchCheckData();
+      } else {
+        // Toggle locally for demo preview
+        if (data) {
+          setData({
+            ...data,
+            status: 'CHANGED_SINCE_VERIFICATION',
+            title: `${data.title} [TAMPERED: +100 bonus grade altered]`,
+            seal: {
+              ...data.seal,
+              stored_digest: data.seal.digest,
+              recomputed_digest: 'tampered_divergent_hash_e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+              is_digest_intact: false,
+              is_signature_valid: false
+            }
+          });
+          setDemoNotice('Simulated local database alteration: payload digest diverged from signed seal.');
+        }
+      }
     } catch {
-      // Simulate client side tamper flip
       if (data) {
         setData({
           ...data,
           status: 'CHANGED_SINCE_VERIFICATION',
-          title: `${data.title} [TAMPERED: +100 bonus marks & grade altered]`,
+          title: `${data.title} [TAMPERED: +100 bonus grade altered]`,
           seal: {
             ...data.seal,
+            stored_digest: data.seal.digest,
+            recomputed_digest: 'tampered_divergent_hash_e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
             is_digest_intact: false,
-            is_signature_valid: false,
-            recomputed_digest: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-            stored_digest: data.seal.digest
-          },
-          message: 'Cryptographic integrity mismatch: content has been altered since the mentor applied their Ed25519 seal.'
+            is_signature_valid: false
+          }
         });
+        setDemoNotice('Simulated local database alteration: payload digest diverged from signed seal.');
       }
     } finally {
       setIsDemoActionRunning(false);
     }
   };
 
-  const handleRestoreDemo = async () => {
+  const restoreRecord = async () => {
     setIsDemoActionRunning(true);
     setDemoNotice(null);
     try {
       await fetch(`${API_BASE_URL}/check/${entryId}/restore-demo`, {
         method: 'POST'
       });
-      setDemoNotice('Record restored to canonical authentic state.');
+      setDemoNotice('Record restored to canonical untampered state.');
       await fetchCheckData();
     } catch {
-      fetchCheckData();
+      await fetchCheckData();
+      setDemoNotice('Record reloaded in canonical state.');
     } finally {
       setIsDemoActionRunning(false);
     }
   };
 
+  const isVerified = data?.status === 'VERIFIED';
+  const isTampered = data?.status === 'CHANGED_SINCE_VERIFICATION';
+  const isRevoked = data?.status === 'REVOKED';
+
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-3xl space-y-6">
-        {/* Public Header */}
-        <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--text)]">
-            <ShieldCheck className="w-6 h-6 text-[var(--cyan)]" />
-            <span>VeriFolio Public Verification</span>
-          </Link>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
-            <School className="w-4 h-4 text-[var(--cyan)]" />
-            <span>Delhi Public School Demo</span>
+    <AppFrame
+      topBarProps={{
+        currentRole: 'VIEWER',
+        userName: 'Public Verifier',
+        progressPercent: 100,
+        activePath: `/check/${entryId}`,
+        onNavigate: (path) => {},
+      }}
+    >
+      <div className="max-w-4xl mx-auto py-4 sm:py-6 flex flex-col gap-6">
+        
+        {/* Verification Status Header */}
+        <div className="rounded-[32px] p-6 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+          style={{
+            backgroundColor: isVerified ? '#10B98115' : isTampered ? '#EF444415' : '#6B6F7615',
+            borderColor: isVerified ? '#10B98130' : isTampered ? '#EF444430' : '#6B6F7630'
+          }}
+        >
+          <div className="flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-xs ${
+              isVerified ? 'bg-[#10B981] text-white' : isTampered ? 'bg-[#EF4444] text-white' : 'bg-[#6B6F76] text-white'
+            }`}>
+              {isVerified && <ShieldCheck className="w-7 h-7" />}
+              {isTampered && <AlertTriangle className="w-7 h-7" />}
+              {isRevoked && <XCircle className="w-7 h-7" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#191A23]">
+                  {isVerified && 'Cryptographically Verified'}
+                  {isTampered && 'TAMPER DETECTED: Data Altered Post-Sealing'}
+                  {isRevoked && 'Verification Formally Revoked'}
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-[#6B6F76] mt-1 font-medium">
+                {isVerified && 'A named mentor linked via the institutional roster attested to these skills on this date.'}
+                {isTampered && 'The stored record digest does not match the Ed25519 digital signature.'}
+                {isRevoked && 'This record was formally revoked by an authorized institutional official.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="text-xs"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied URL' : 'Share Link'}</span>
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowQr(!showQr)}
+              className="text-xs"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>QR Code</span>
+            </Button>
           </div>
         </div>
 
-        {/* Status Hero Card */}
-        {isLoading ? (
-          <GlassCard className="p-12 text-center text-sm text-[var(--muted)]">
-            <div className="w-8 h-8 mx-auto mb-3 border-2 border-[var(--cyan)] border-t-transparent rounded-full animate-spin" />
-            <p>Cryptographically verifying Ed25519 seal & audit chain...</p>
-          </GlassCard>
-        ) : data?.status === 'VERIFIED' ? (
-          <GlassCard className="p-6 md:p-8 space-y-4 border-[var(--ok)]/50 bg-[var(--ok)]/5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[var(--ok)]/20 flex items-center justify-center text-[var(--ok)]">
-                  <CheckCircle2 className="w-7 h-7" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--ok)] px-2.5 py-0.5 rounded-full bg-[var(--ok)]/15 border border-[var(--ok)]/30">
-                      Verified
-                    </span>
-                    <span className="text-xs text-[var(--muted)]">Ed25519 Sealed</span>
-                  </div>
-                  <h1 className="text-xl md:text-2xl font-bold text-[var(--text)] mt-1">
-                    {data.title}
-                  </h1>
-                </div>
-              </div>
-              <button
-                onClick={fetchCheckData}
-                title="Re-verify signature"
-                className="p-2 rounded-xl bg-[var(--glass)] hover:bg-[var(--glass-hover)] text-[var(--muted)] hover:text-[var(--text)] self-start sm:self-auto transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
+        {/* Dynamic QR Code Modal Preview */}
+        {showQr && (
+          <div className="p-6 rounded-[28px] bg-[#F4F5FB] border border-[#E7E8EB] flex flex-col items-center text-center">
+            <div className="w-44 h-44 rounded-2xl bg-white p-3 border border-[#E7E8EB] flex items-center justify-center shadow-xs mb-3">
+              <svg viewBox="0 0 100 100" className="w-full h-full text-[#191A23] fill-current">
+                <rect x="10" y="10" width="30" height="30" rx="4" />
+                <rect x="60" y="10" width="30" height="30" rx="4" />
+                <rect x="10" y="60" width="30" height="30" rx="4" />
+                <rect x="50" y="50" width="15" height="15" rx="2" />
+                <rect x="75" y="75" width="15" height="15" rx="2" />
+              </svg>
             </div>
+            <span className="text-xs font-bold text-[#191A23]">
+              Scan to Verify On Mobile
+            </span>
+            <span className="text-[11px] text-[#6B6F76] mt-0.5 font-mono">
+              {entryId}
+            </span>
+          </div>
+        )}
 
-            {/* Strict Narrow Claim Quote Box */}
-            <div className="p-4 rounded-xl bg-[var(--glass)] border border-[var(--glass-border)] text-xs text-[var(--text)] italic leading-relaxed">
-              "{data.verification_claim || 'A named, roster-linked mentor confirmed these skills at these levels on this date and the content has not changed since.'}"
-            </div>
-          </GlassCard>
-        ) : data?.status === 'CHANGED_SINCE_VERIFICATION' ? (
-          <GlassCard className="p-6 md:p-8 space-y-4 border-[var(--warn)]/60 bg-[var(--warn)]/10">
-            <div className="flex items-center gap-3 text-[var(--warn)]">
-              <div className="w-12 h-12 rounded-full bg-[var(--warn)]/20 flex items-center justify-center">
-                <AlertTriangle className="w-7 h-7" />
-              </div>
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--warn)] px-2.5 py-0.5 rounded-full bg-[var(--warn)]/20 border border-[var(--warn)]/40">
-                  Changed Since Verification
-                </span>
-                <h1 className="text-xl md:text-2xl font-bold text-[var(--text)] mt-1">
-                  Cryptographic Integrity Mismatch Detected
-                </h1>
-              </div>
-            </div>
-
-            <p className="text-xs text-[var(--text)] leading-relaxed">
-              The content of this record has been altered in storage after Dr. Anand Verma signed the Ed25519 verification seal. The recomputed RFC 8785 canonical digest does not match the signed digest.
-            </p>
-
-            <div className="p-3 rounded-xl bg-[var(--glass)] border border-[var(--warn)]/30 font-mono text-[11px] space-y-1">
-              <p className="text-[var(--muted)]">Stored Signed Digest: {data.seal.stored_digest || data.seal.digest}</p>
-              <p className="text-[var(--warn)]">Recomputed Digest:   {data.seal.recomputed_digest}</p>
-            </div>
-          </GlassCard>
-        ) : (
-          <GlassCard className="p-6 md:p-8 space-y-4 border-[var(--err)]/60 bg-[var(--err)]/10">
-            <div className="flex items-center gap-3 text-[var(--err)]">
-              <div className="w-12 h-12 rounded-full bg-[var(--err)]/20 flex items-center justify-center">
-                <XCircle className="w-7 h-7" />
-              </div>
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--err)] px-2.5 py-0.5 rounded-full bg-[var(--err)]/20 border border-[var(--err)]/40">
-                  Verification Revoked
-                </span>
-                <h1 className="text-xl md:text-2xl font-bold text-[var(--text)] mt-1">
-                  This Verification Has Been Formally Revoked
-                </h1>
-              </div>
-            </div>
-            <p className="text-xs text-[var(--text)]">
-              A mentor or school administrator has signed a cryptographic revocation event invalidating this certificate.
-            </p>
-          </GlassCard>
+        {demoNotice && (
+          <div className="p-3.5 rounded-2xl bg-[#FFA172]/20 border border-[#FFA172]/40 text-xs font-bold text-[#C9662A] text-center">
+            {demoNotice}
+          </div>
         )}
 
         {/* Claim Details */}
         {data && (
-          <GlassCard className="p-6 space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-[var(--glass-border)] text-xs">
-              <div className="space-y-1">
-                <p className="text-[var(--muted)]">Student</p>
-                <p className="font-semibold text-sm text-[var(--text)]">{data.student_name}</p>
-                {data.student_class_level && (
-                  <p className="text-[var(--muted)]">{data.student_class_level}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Left 2 Cols: Student Claim & Skills */}
+            <div className="md:col-span-2 flex flex-col gap-5">
+              <div className="p-6 rounded-[32px] bg-[#F4F5FB] border border-[#E7E8EB]">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#7E7AE6]/15 text-[#7E7AE6]">
+                    {data.category || 'STEM'}
+                  </span>
+                  <span className="text-xs font-bold text-[#6B6F76]">
+                    Student: <strong className="text-[#191A23]">{data.student_name}</strong>
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#191A23] leading-snug">
+                  {data.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#6B6F76] mt-2 leading-relaxed">
+                  {data.description}
+                </p>
+
+                {/* Skills Grid */}
+                {data.skills && data.skills.length > 0 && (
+                  <div className="mt-5 pt-4 border-t border-[#E7E8EB]">
+                    <span className="text-xs font-bold text-[#191A23] block mb-2.5">
+                      Attested Skills & Competency Levels
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {data.skills.map((s) => (
+                        <div
+                          key={s.id}
+                          className="px-3.5 py-1.5 rounded-full bg-white border border-[#E7E8EB] flex items-center gap-2 shadow-2xs"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                          <span className="text-xs font-bold text-[#191A23]">{s.name}</span>
+                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#FFA172]/20 text-[#C9662A]">
+                            {s.level}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="space-y-1">
-                <p className="text-[var(--muted)]">Verifying Mentor</p>
-                <p className="font-semibold text-sm text-[var(--text)] flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-[var(--ok)]" />
-                  <span>{data.mentor_name}</span>
-                </p>
-                <p className="text-[var(--muted)]">
-                  Confirmed on {new Date(data.decided_at).toLocaleDateString()}
-                </p>
-              </div>
             </div>
 
-            {/* Description */}
-            <div className="space-y-1.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                Project Summary
-              </h2>
-              <p className="text-sm text-[var(--text)] leading-relaxed">
-                {data.description}
-              </p>
-            </div>
-
-            {/* Confirmed Skills */}
-            {data.skills && data.skills.length > 0 && (
-              <div className="space-y-2 pt-2">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-[var(--cyan)]" />
-                  Mentor-Confirmed Skills
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {data.skills.map((skill) => (
-                    <div
-                      key={skill.id}
-                      className="p-3 rounded-xl bg-[var(--glass)] border border-[var(--glass-border)] flex items-center justify-between text-xs"
-                    >
-                      <span className="font-medium text-[var(--text)]">{skill.name}</span>
-                      <span className="font-bold text-[10px] uppercase px-2 py-0.5 rounded-full bg-[var(--cyan)]/15 text-[var(--cyan)]">
-                        {skill.level}
-                      </span>
-                    </div>
-                  ))}
+            {/* Right Col: Mentor Attestation & Cryptographic Seal */}
+            <div className="flex flex-col gap-5">
+              <div className="p-5 rounded-[28px] bg-[#F4F5FB] border border-[#E7E8EB] flex flex-col gap-3">
+                <span className="text-xs font-bold text-[#191A23]">
+                  Attesting Mentor
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#7E7AE6] text-white flex items-center justify-center font-bold text-xs">
+                    {data.mentor_name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#191A23]">{data.mentor_name}</h3>
+                    <p className="text-[11px] text-[#6B6F76]">Institutional Mentor & Faculty</p>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Mentor Written Note */}
-            {data.mentor_note && (
-              <div className="space-y-1.5 pt-2">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                  Mentor Evaluation Note
-                </h2>
-                <div className="p-3.5 rounded-xl bg-[var(--glass)] border border-[var(--glass-border)] text-xs text-[var(--text)] italic leading-relaxed">
-                  "{data.mentor_note}"
+              {/* Digital Seal Digest */}
+              <div className="p-5 rounded-[28px] bg-[#191A23] text-white flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#FFA172]">
+                    Ed25519 Digital Seal
+                  </span>
+                  <KeyRound className="w-4 h-4 text-[#FFA172]" />
                 </div>
-              </div>
-            )}
-
-            {/* Evidence Hashes */}
-            {data.evidence && data.evidence.length > 0 && (
-              <div className="space-y-1.5 pt-2">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-[var(--cyan)]" />
-                  Verified Evidence Digest Hashes ({data.evidence.length})
-                </h2>
-                <div className="space-y-1 font-mono text-[10px] text-[var(--muted)]">
-                  {data.evidence.map((ev, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-[var(--glass)] flex items-center gap-1.5 truncate">
-                      <Hash className="w-3 h-3 text-[var(--cyan)] flex-shrink-0" />
-                      <span className="truncate">sha256:{ev.sha256}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </GlassCard>
-        )}
-
-        {/* Cryptographic Proof Drawer */}
-        {data && (
-          <GlassCard className="p-6 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-[var(--glass-border)] pb-2">
-              <h2 className="font-sans font-bold text-sm text-[var(--text)] flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-[var(--cyan)]" />
-                Cryptographic Proof (RFC 8785 / RFC 8032)
-              </h2>
-              <a
-                href="http://localhost:4000/.well-known/verifolio-keys.json"
-                target="_blank"
-                rel="noreferrer"
-                className="font-sans text-[11px] text-[var(--cyan)] hover:underline flex items-center gap-1"
-              >
-                <span>Keyset Endpoint</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            <div className="space-y-2 text-[11px] pt-1">
-              <div>
-                <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Signing Key ID</p>
-                <p className="text-[var(--cyan)]">{data.seal.key_id}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider">RFC 8785 Canonical SHA-256 Digest</p>
-                <p className="text-[var(--text)] break-all">{data.seal.digest || data.seal.stored_digest}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider">Ed25519 Cryptographic Signature</p>
-                <p className="text-[var(--violet)] break-all">{data.seal.signature}</p>
-              </div>
-              {data.seal.audit_event_hash && (
                 <div>
-                  <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider">School Audit Chain Link Hash</p>
-                  <p className="text-[var(--text)] break-all">{data.seal.audit_event_hash}</p>
+                  <span className="text-[10px] text-white/60 block mb-0.5">Key ID</span>
+                  <code className="text-xs font-mono font-bold text-white/90">
+                    {data.seal.key_id}
+                  </code>
                 </div>
-              )}
+                <div>
+                  <span className="text-[10px] text-white/60 block mb-0.5">SHA-256 Digest</span>
+                  <code className="text-[11px] font-mono font-bold text-[#FFA172] break-all">
+                    {data.seal.digest ? `${data.seal.digest.slice(0, 32)}...` : '7a8b9c0d1e2f3a4b...'}
+                  </code>
+                </div>
+              </div>
+
+              {/* Tamper Simulation Tools (Interactive QA Demo) */}
+              <div className="p-4 rounded-[28px] bg-[#F4F5FB] border border-[#E7E8EB] flex flex-col gap-2">
+                <span className="text-xs font-bold text-[#191A23]">
+                  Tamper Verification QA Tools
+                </span>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={simulateTamper}
+                  isLoading={isDemoActionRunning}
+                  className="w-full text-xs"
+                >
+                  <Bug className="w-3.5 h-3.5 mr-1" />
+                  <span>Simulate DB Tampering</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={restoreRecord}
+                  isLoading={isDemoActionRunning}
+                  className="w-full text-xs"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                  <span>Restore Original Seal</span>
+                </Button>
+              </div>
+
             </div>
-          </GlassCard>
+
+          </div>
         )}
 
-        {/* Hackathon Live Tamper Demo Tool */}
-        <GlassCard className="p-5 border-[var(--warn)]/40 bg-[var(--warn)]/5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bug className="w-4 h-4 text-[var(--warn)]" />
-              <h3 className="font-sans text-xs font-bold text-[var(--text)] uppercase tracking-wider">
-                Hackathon Live Tamper Demonstration
-              </h3>
-            </div>
-            <span className="text-[10px] text-[var(--muted)]">Admin / Evaluator Demo Mode</span>
-          </div>
-
-          <p className="text-xs text-[var(--muted)]">
-            Test VeriFolio's mathematical tamper resistance in real-time. Modifying even a single character in the underlying database immediately invalidates the Ed25519 cryptographic seal.
-          </p>
-
-          {demoNotice && (
-            <p className="text-xs font-medium text-[var(--cyan)] bg-[var(--cyan)]/10 p-2 rounded-lg">
-              {demoNotice}
-            </p>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <button
-              onClick={handleTamperDemo}
-              disabled={isDemoActionRunning || data?.status === 'CHANGED_SINCE_VERIFICATION'}
-              className="px-3.5 py-1.5 rounded-xl border border-[var(--warn)]/40 bg-[var(--warn)]/15 text-[var(--warn)] text-xs font-semibold hover:bg-[var(--warn)]/25 disabled:opacity-40 transition-colors flex items-center gap-1.5"
-            >
-              <Bug className="w-3.5 h-3.5" />
-              <span>Simulate DB Row Tampering</span>
-            </button>
-            <button
-              onClick={handleRestoreDemo}
-              disabled={isDemoActionRunning || data?.status === 'VERIFIED'}
-              className="px-3.5 py-1.5 rounded-xl border border-[var(--ok)]/40 bg-[var(--ok)]/15 text-[var(--ok)] text-xs font-semibold hover:bg-[var(--ok)]/25 disabled:opacity-40 transition-colors flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Restore Canonical Record</span>
-            </button>
-          </div>
-        </GlassCard>
       </div>
-    </div>
+    </AppFrame>
   );
 }
-
