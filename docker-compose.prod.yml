@@ -1,0 +1,164 @@
+name: verifolio-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: verifolio-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-verifolio}
+      POSTGRES_USER: ${POSTGRES_USER:-verifolio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-verifolio_secure_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-verifolio} -d ${POSTGRES_DB:-verifolio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - verifolio-internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: verifolio-prod-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - verifolio-internal
+
+  minio:
+    image: minio/minio:latest
+    container_name: verifolio-prod-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-verifolio_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-verifolio_minio_pass}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - verifolio-internal
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: verifolio-prod-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-verifolio}:${POSTGRES_PASSWORD:-verifolio_secure_pass}@postgres:5432/${POSTGRES_DB:-verifolio}
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: verifolio-evidence
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-verifolio_minio}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-verifolio_minio_pass}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_super_secret_signing_key_verifolio_2026}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - verifolio-internal
+      - verifolio-public
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: verifolio-prod-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - verifolio-public
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: verifolio-prod-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-verifolio}:${POSTGRES_PASSWORD:-verifolio_secure_pass}@postgres:5432/${POSTGRES_DB:-verifolio}
+      REDIS_URL: redis://redis:6379
+    networks:
+      - verifolio-internal
+
+  mock-erp:
+    build:
+      context: .
+      dockerfile: apps/mock-erp/Dockerfile
+    container_name: verifolio-prod-mock-erp
+    restart: unless-stopped
+    environment:
+      PORT: 4001
+      NODE_ENV: production
+    ports:
+      - "4001:4001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - verifolio-internal
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  verifolio-internal:
+    driver: bridge
+  verifolio-public:
+    driver: bridge

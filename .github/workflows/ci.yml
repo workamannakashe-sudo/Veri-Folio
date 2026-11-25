@@ -58,5 +58,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Build
+        run: pnpm build
+
       - name: Unit & Golden Vector Tests
         run: pnpm test
