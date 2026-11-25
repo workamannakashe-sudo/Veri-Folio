@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { EduViewDashboard } from '@/components/EduViewDashboard';
-import { ShieldCheck, GraduationCap, UserCheck, Building2, ExternalLink } from 'lucide-react';
+import { ShieldCheck, GraduationCap, UserCheck, Building2, ExternalLink, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
   const [viewMode, setViewMode] = useState<'bento' | 'roles'>('bento');
@@ -28,34 +28,19 @@ export default function HomePage() {
 
         {/* View Switcher / Quick Roles */}
         <div className="flex items-center gap-2">
-          <div className="bg-[#0F1015] p-1 rounded-full border border-[#2B2D3A] flex items-center text-xs">
-            <button
-              onClick={() => setViewMode('bento')}
-              className={`px-3 py-1.5 rounded-full font-bold transition-all ${
-                viewMode === 'bento'
-                  ? 'bg-[#6C63FF] text-white shadow'
-                  : 'text-[#8C90A8] hover:text-white'
-              }`}
-            >
-              EduView UI
-            </button>
-            <button
-              onClick={() => setViewMode('roles')}
-              className={`px-3 py-1.5 rounded-full font-bold transition-all ${
-                viewMode === 'roles'
-                  ? 'bg-[#6C63FF] text-white shadow'
-                  : 'text-[#8C90A8] hover:text-white'
-              }`}
-            >
-              All Portals
-            </button>
-          </div>
+          <Link
+            href="/demo"
+            className="px-4 py-1.5 rounded-full bg-[#5EEAD4] text-black font-extrabold text-xs hover:bg-[#34D399] transition-all shadow-md flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-black" />
+            <span>Enter Demo Mode</span>
+          </Link>
 
           <Link
             href="/login"
-            className="px-4 py-1.5 rounded-full bg-white text-[#191A23] font-bold text-xs hover:bg-[#F3F4F8] transition-all shadow-sm"
+            className="px-4 py-1.5 rounded-full bg-white/10 text-white font-bold text-xs hover:bg-white/20 transition-all border border-white/10"
           >
-            Demo Sign In
+            Sign In
           </Link>
         </div>
       </header>
